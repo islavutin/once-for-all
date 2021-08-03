@@ -13,6 +13,8 @@ from ofa.utils import MyModule, val2list, get_net_device, build_activation, make
 from .dynamic_op import DynamicSeparableConv2d, DynamicConv2d, DynamicBatchNorm2d, DynamicSE, DynamicGroupNorm
 from .dynamic_op import DynamicLinear
 
+import numpy as np
+
 __all__ = [
     'adjust_bn_according_to_idx', 'copy_bn',
     'DynamicMBConvLayer', 'DynamicConvLayer', 'DynamicLinearLayer', 'DynamicResNetBottleneckBlock'
@@ -121,7 +123,7 @@ class DynamicMBConvLayer(MyModule):
 
         # build modules
         max_middle_channel = make_divisible(
-            round(max(self.in_channel_list) * max(self.expand_ratio_list)), MyNetwork.CHANNEL_DIVISIBLE)
+            np.round(max(self.in_channel_list) * max(self.expand_ratio_list)), MyNetwork.CHANNEL_DIVISIBLE)
         if max(self.expand_ratio_list) == 1:
             self.inverted_bottleneck = None
         else:
@@ -153,7 +155,7 @@ class DynamicMBConvLayer(MyModule):
 
         if self.inverted_bottleneck is not None:
             self.inverted_bottleneck.conv.active_out_channel = \
-                make_divisible(round(in_channel * self.active_expand_ratio), MyNetwork.CHANNEL_DIVISIBLE)
+                make_divisible(np.round(in_channel * self.active_expand_ratio), MyNetwork.CHANNEL_DIVISIBLE)
 
         self.depth_conv.conv.active_kernel_size = self.active_kernel_size
         self.point_linear.conv.active_out_channel = self.active_out_channel
@@ -199,7 +201,7 @@ class DynamicMBConvLayer(MyModule):
         return max(self.out_channel_list)
 
     def active_middle_channel(self, in_channel):
-        return make_divisible(round(in_channel * self.active_expand_ratio), MyNetwork.CHANNEL_DIVISIBLE)
+        return make_divisible(np.round(in_channel * self.active_expand_ratio), MyNetwork.CHANNEL_DIVISIBLE)
 
     ############################################################################################
 
@@ -271,7 +273,7 @@ class DynamicMBConvLayer(MyModule):
             sorted_expand_list = copy.deepcopy(self.expand_ratio_list)
             sorted_expand_list.sort(reverse=True)
             target_width_list = [
-                make_divisible(round(max(self.in_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
+                make_divisible(np.round(max(self.in_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
                 for expand in sorted_expand_list
             ]
 
@@ -428,7 +430,7 @@ class DynamicResNetBottleneckBlock(MyModule):
 
         # build modules
         max_middle_channel = make_divisible(
-            round(max(self.out_channel_list) * max(self.expand_ratio_list)), MyNetwork.CHANNEL_DIVISIBLE)
+            np.round(max(self.out_channel_list) * max(self.expand_ratio_list)), MyNetwork.CHANNEL_DIVISIBLE)
 
         self.conv1 = nn.Sequential(OrderedDict([
             ('conv', DynamicConv2d(max(self.in_channel_list), max_middle_channel)),
@@ -525,7 +527,7 @@ class DynamicResNetBottleneckBlock(MyModule):
 
     @property
     def active_middle_channels(self):
-        feature_dim = round(self.active_out_channel * self.active_expand_ratio)
+        feature_dim = np.round(self.active_out_channel * self.active_expand_ratio)
         feature_dim = make_divisible(feature_dim, MyNetwork.CHANNEL_DIVISIBLE)
         return feature_dim
 
@@ -585,7 +587,7 @@ class DynamicResNetBottleneckBlock(MyModule):
             sorted_expand_list = copy.deepcopy(self.expand_ratio_list)
             sorted_expand_list.sort(reverse=True)
             target_width_list = [
-                make_divisible(round(max(self.out_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
+                make_divisible(np.round(max(self.out_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
                 for expand in sorted_expand_list
             ]
             right = len(importance)
@@ -613,7 +615,7 @@ class DynamicResNetBottleneckBlock(MyModule):
             sorted_expand_list = copy.deepcopy(self.expand_ratio_list)
             sorted_expand_list.sort(reverse=True)
             target_width_list = [
-                make_divisible(round(max(self.out_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
+                make_divisible(np.round(max(self.out_channel_list) * expand), MyNetwork.CHANNEL_DIVISIBLE)
                 for expand in sorted_expand_list
             ]
             right = len(importance)
